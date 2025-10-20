@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FolderSync": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Path\\To\\Source\" \"C:\\Path\\To\\Replica\" 30 \"C:\\Path\\To\\sync.log\""
+    }
+  }
+}
