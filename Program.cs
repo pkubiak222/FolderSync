@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using FolderSync;
+using System.IO;
 
 internal class Program
 {
@@ -35,7 +36,7 @@ internal class Program
         var logFilePath = Path.GetFullPath(logFile);
         Directory.CreateDirectory(Path.GetDirectoryName(logFilePath) ?? ".");
 
-        //TODO logging
+        Logger logger = new Logger(logFile);
 
         return 0;
     }
