@@ -37,7 +37,10 @@ internal class Program
         Directory.CreateDirectory(Path.GetDirectoryName(logFilePath) ?? ".");
 
         Logger logger = new Logger(logFile);
-
+        Synchronizer synchronizer = new Synchronizer(sourcePath, replicaPath, logger);
+        synchronizer.Synchronize();
+        logger.Log("Stopped.");
+        logger.Dispose();
         return 0;
     }
 }
