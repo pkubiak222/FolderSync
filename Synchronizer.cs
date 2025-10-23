@@ -64,10 +64,7 @@ namespace FolderSync
             var tempFile = targetFile + ".tmp" + Guid.NewGuid().ToString("N");
             try
             {
-                // Copy to temporary file first
                 File.Copy(file, tempFile, true);
-
-                // Replace the target atomically
                 File.Delete(targetFile);
                 File.Move(tempFile, targetFile);
             }
@@ -77,7 +74,7 @@ namespace FolderSync
                 // Ensure temp file is deleted if something went wrong
                 if (File.Exists(tempFile))
                 {
-                    try { File.Delete(tempFile); } catch { /* ignore */ }
+                    try { File.Delete(tempFile); } catch (Exception e2) { Console.Error.WriteLine($"Error: {e2.Message}"); }
                 }
             }
         }
@@ -96,7 +93,6 @@ namespace FolderSync
                 }
             }
 
-            // Delete empty directories not in source
             foreach (var dir in Directory.EnumerateDirectories(replica, "*", SearchOption.AllDirectories)
                                                 .OrderByDescending(d => d.Length))
             {
@@ -109,9 +105,9 @@ namespace FolderSync
                         Directory.Delete(dir, true);
                         logger.Log($"DELETE DIR: '{relative}'");
                     }
-                    catch (Exception ex)
+                    catch (Exception e)
                     {
-                        logger.Log($"Failed to delete dir '{dir}': {ex.Message}");
+                        logger.Log($"Failed to delete dir '{dir}': {e.Message}");
                     }
                 }
             }

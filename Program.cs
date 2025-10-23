@@ -1,8 +1,11 @@
 ﻿using FolderSync;
 using System.IO;
+using System.Timers;
 
 internal class Program
 {
+    private static System.Timers.Timer? timer;
+
     private static int Main(string[] args)
     {
         if(args.Length != 4)
@@ -38,9 +41,47 @@ internal class Program
 
         Logger logger = new Logger(logFile);
         Synchronizer synchronizer = new Synchronizer(sourcePath, replicaPath, logger);
-        synchronizer.Synchronize();
-        logger.Log("Stopped.");
+
+        Console.WriteLine("Press ESC to stop synchronization.");
+        logger.Log($"Starting periodic synchronization every {intervalInSeconds} seconds...");
+
+        bool stopRequested = false;
+
+        while (!stopRequested)
+        {
+            try
+            {
+                synchronizer.Synchronize();
+                logger.Log($"Synchronization completed at {DateTime.Now}");
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"Error during synchronization: {ex.Message}");
+            }
+
+            // Wait for the interval in small chunks to detect ESC key
+            int waited = 0;
+            while (waited < intervalInSeconds * 1000 && !stopRequested)
+            {
+                if (Console.KeyAvailable)
+                {
+                    var key = Console.ReadKey(intercept: true);
+                    if (key.Key == ConsoleKey.Escape)
+                    {
+                        stopRequested = true;
+                        logger.Log("Stopping synchronization...");
+                        break;
+                    }
+                }
+
+                Thread.Sleep(100); // small delay to avoid busy waiting
+                waited += 100;
+            }
+        }
+
         logger.Dispose();
+        Console.WriteLine("Synchronization stopped.");
         return 0;
     }
 }
+
