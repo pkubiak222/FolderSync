@@ -4,11 +4,10 @@ using System.Timers;
 
 internal class Program
 {
-    private static System.Timers.Timer? timer;
 
     private static int Main(string[] args)
     {
-        if(args.Length != 4)
+        if (args.Length != 4)
         {
             Console.WriteLine("Not enough arguments. Please provide arguments: SourcePath ReplicaPath IntervalInSeconds LogFile");
             return 1;
@@ -16,11 +15,23 @@ internal class Program
 
         string sourcePath = args[0];
         string replicaPath = args[1];
-        
+
         //TryParse will return false if failed to parse string to int
-        if (!int.TryParse(args[2], out int intervalInSeconds) || intervalInSeconds <= 0)
+        if (!int.TryParse(args[2], out int intervalInSeconds) || intervalInSeconds < 0)
         {
             Console.WriteLine("Interval is not a positive number. Please provide interval in seconds");
+            return 1;
+        }
+
+        if (intervalInSeconds == 0)
+        {
+            Console.WriteLine("Interval cannot be 0");
+            return 1;
+        }
+
+        if (replicaPath == sourcePath)
+        {
+            Console.WriteLine("Source and Replica paths cannot be the same");
             return 1;
         }
         
@@ -33,13 +44,27 @@ internal class Program
             return 1;
         }
 
-        //creating replica folder
-        Directory.CreateDirectory(replicaPath);
+        try
+        {
+            string fullReplicaPath = Path.GetFullPath(replicaPath); 
+
+            if (!Directory.Exists(fullReplicaPath))
+            {
+                Directory.CreateDirectory(fullReplicaPath);
+                Console.WriteLine($"Replica directory created at: {fullReplicaPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Invalid replica path '{replicaPath}': {ex.Message}");
+            return 1;
+        }
 
         var logFilePath = Path.GetFullPath(logFile);
         Directory.CreateDirectory(Path.GetDirectoryName(logFilePath) ?? ".");
 
         Logger logger = new Logger(logFile);
+
         Synchronizer synchronizer = new Synchronizer(sourcePath, replicaPath, logger);
 
         Console.WriteLine("Press ESC to stop synchronization.");
